@@ -1021,199 +1021,280 @@ fun PerformanceTabContent(
 ) {
     val clicksLog by viewModel.clicksLog.collectAsState()
     val totalCommissions by viewModel.totalCommissions.collectAsState()
+    val catalog = viewModel.catalog
+    var selectedCarForTelemetry by remember { mutableStateOf(catalog.firstOrNull() ?: com.example.data.CarCatalog.items.first()) }
 
     val commissionGoal = 50000.0
     val progressFraction = (totalCommissions / commissionGoal).coerceIn(0.0, 1.0)
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 32.dp)
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "AFFILIATE TELEMETRY",
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            ),
-            color = Color(0xFF737373)
-        )
-        Text(
-            text = "Performance Dashboard",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Light,
-                letterSpacing = (-0.5).sp
-            ),
-            color = ChromeWhite
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            Column {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "AFFILIATE TELEMETRY",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    ),
+                    color = Color(0xFF737373)
+                )
+                Text(
+                    text = "Performance Dashboard",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = (-0.5).sp
+                    ),
+                    color = ChromeWhite
+                )
+            }
+        }
 
         // Performance Overview cards Row (Linear dark gradient backgrounds with Immersive borders)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val statsCardBrush = remember {
-                Brush.linearGradient(
-                    colors = listOf(Color(0xFF161616), Color(0xFF0F0F0F))
-                )
-            }
-
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(115.dp),
-                shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, ImmersiveBorder)
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(statsCardBrush)
-                        .padding(14.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Column(verticalArrangement = Arrangement.Center) {
-                        Text("Total Commissions", color = Color(0xFF737373), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = NumberFormat.getCurrencyInstance(Locale.US).format(totalCommissions).replace(".00", ""),
-                            color = LuxuryGold,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Est. 1.5% Yield Rate", color = Color(0x80FFFFFF), fontSize = 10.sp)
-                    }
+                val statsCardBrush = remember {
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF161616), Color(0xFF0F0F0F))
+                    )
                 }
-            }
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(115.dp),
-                shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, ImmersiveBorder)
-            ) {
-                Box(
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(statsCardBrush)
-                        .padding(14.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .weight(1f)
+                        .height(115.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, ImmersiveBorder)
                 ) {
-                    Column(verticalArrangement = Arrangement.Center) {
-                        Text("Redirection Leads", color = Color(0xFF737373), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = clicksLog.size.toString(),
-                            color = ChromeWhite,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Unique Clicks Logged", color = Color(0x80FFFFFF), fontSize = 10.sp)
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Analytics Graph Card - Styled with transparent Card, Immersive border, and dark gradient background box
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(24.dp),
-            border = BorderStroke(1.dp, ImmersiveBorder),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color(0xFF161616), Color(0xFF0F0F0F))
-                        )
-                    )
-                    .padding(18.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "Weekly Commissions Pipeline",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                        color = ChromeWhite
-                    )
-                    Text(
-                        text = "Goal progress: ${"%.1f".format(progressFraction * 100)}% of $50k Gold Standard Payout Target",
-                        color = SilverSatin,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Custom Graphic drawing using system Canvas
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(130.dp)
-                            .background(Color(0xFF090909), RoundedCornerShape(16.dp))
-                            .border(1.dp, ImmersiveBorder, RoundedCornerShape(16.dp))
-                            .padding(8.dp)
+                            .fillMaxSize()
+                            .background(statsCardBrush)
+                            .padding(14.dp),
+                        contentAlignment = Alignment.CenterStart
                     ) {
-                        PerformanceAnalyticsGraph(clicksLog)
+                        Column(verticalArrangement = Arrangement.Center) {
+                            Text("Total Commissions", color = Color(0xFF737373), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = NumberFormat.getCurrencyInstance(Locale.US).format(totalCommissions).replace(".00", ""),
+                                color = LuxuryGold,
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Est. 1.5% Yield Rate", color = Color(0x80FFFFFF), fontSize = 10.sp)
+                        }
+                    }
+                }
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(115.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, ImmersiveBorder)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(statsCardBrush)
+                            .padding(14.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column(verticalArrangement = Arrangement.Center) {
+                            Text("Redirection Leads", color = Color(0xFF737373), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = clicksLog.size.toString(),
+                                color = ChromeWhite,
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Unique Clicks Logged", color = Color(0x80FFFFFF), fontSize = 10.sp)
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Click Event Logs
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Live Click Telemetry Log",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                color = ChromeWhite
-            )
-            if (clicksLog.isNotEmpty()) {
-                TextButton(
-                    onClick = { viewModel.clearAnalyticsLog() },
-                    colors = ButtonDefaults.textButtonColors(contentColor = RedCalipers)
+        // Analytics Graph Card - Styled with transparent Card, Immersive border, and dark gradient background box
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                shape = RoundedCornerShape(24.dp),
+                border = BorderStroke(1.dp, ImmersiveBorder),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(Color(0xFF161616), Color(0xFF0F0F0F))
+                            )
+                        )
+                        .padding(18.dp)
                 ) {
-                    Text("Clear Logs", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Column {
+                        Text(
+                            text = "Weekly Commissions Pipeline",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                            color = ChromeWhite
+                        )
+                        Text(
+                            text = "Goal progress: ${"%.1f".format(progressFraction * 100)}% of $50k Gold Standard Payout Target",
+                            color = SilverSatin,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Custom Graphic drawing using system Canvas
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(130.dp)
+                                .background(Color(0xFF090909), RoundedCornerShape(16.dp))
+                                .border(1.dp, ImmersiveBorder, RoundedCornerShape(16.dp))
+                                .padding(8.dp)
+                        ) {
+                            PerformanceAnalyticsGraph(clicksLog)
+                        }
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        if (clicksLog.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(Color(0x06FFFFFF), RoundedCornerShape(20.dp))
-                    .border(1.dp, ImmersiveBorder, RoundedCornerShape(20.dp)),
-                contentAlignment = Alignment.Center
-            ) {
+        // ==========================================
+        // DYNAMICS ANALYSIS LAB (LUXURY CAR CATALOG SELECTOR)
+        // ==========================================
+        item {
+            Column {
                 Text(
-                    text = "No analytics tracked yet.\nTap 'Inquire Now' on inventory vehicles.",
-                    color = SilverSatin.copy(alpha = 0.5f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = "DYNAMICS ANALYSIS LAB",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    ),
+                    color = Color(0xFF737373)
+                )
+                Text(
+                    text = "Interactive Powertrain Dyno",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = (-0.5).sp
+                    ),
+                    color = ChromeWhite
                 )
             }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.weight(1f)
+        }
+
+        item {
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)
             ) {
-                items(clicksLog, key = { it.id }) { log ->
-                    ClickLogCard(log)
+                items(catalog) { car ->
+                    val isSelected = selectedCarForTelemetry.id == car.id
+                    Surface(
+                        onClick = { selectedCarForTelemetry = car },
+                        color = if (isSelected) LuxuryGold.copy(alpha = 0.12f) else Color(0x06FFFFFF),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (isSelected) LuxuryGold else ImmersiveBorder
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.width(135.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AsyncImage(
+                                model = car.imageUrl,
+                                contentDescription = car.fullName,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(55.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = car.model,
+                                color = if (isSelected) LuxuryGold else ChromeWhite,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                 }
+            }
+        }
+
+        // Dedicated Live Recharts-styled visualizer overlay card
+        item {
+            VehiclePerformanceTelemetryTracker(
+                car = selectedCarForTelemetry,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // Click Event Logs Headers
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Live Click Telemetry Log",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                    color = ChromeWhite
+                )
+                if (clicksLog.isNotEmpty()) {
+                    TextButton(
+                        onClick = { viewModel.clearAnalyticsLog() },
+                        colors = ButtonDefaults.textButtonColors(contentColor = RedCalipers)
+                    ) {
+                        Text("Clear Logs", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
+        if (clicksLog.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .background(Color(0x06FFFFFF), RoundedCornerShape(20.dp))
+                        .border(1.dp, ImmersiveBorder, RoundedCornerShape(20.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No analytics tracked yet.\nTap 'Inquire Now' on inventory vehicles.",
+                        color = SilverSatin.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        } else {
+            items(clicksLog, key = { it.id }) { log ->
+                ClickLogCard(log)
             }
         }
     }
@@ -1492,7 +1573,12 @@ fun CarDetailsDialog(
                     }
                     
                     item {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
+                        VehiclePerformanceTelemetryTracker(
+                            car = car,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
 
