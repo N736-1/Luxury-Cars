@@ -1,0 +1,6 @@
+{
+  "name": "Luxury Auto Affiliates",
+  "description": "An exquisite luxury car catalog with personalized virtual garage parking, affiliate inquire redirection, and visual performance tracking logs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
