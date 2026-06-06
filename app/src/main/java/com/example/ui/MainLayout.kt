@@ -11,6 +11,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -1641,77 +1643,380 @@ fun CarDetailsDialog(
     }
 }
 
+enum class RedirectFlowStage {
+    LEAD_FORM,
+    COUNTER
+}
+
 @Composable
 fun AffiliateRedirectFlow(
     car: Car,
     onComplete: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    // Elegant countdown loader dialog illustrating security routing
+    var currentStage by remember { mutableStateOf(RedirectFlowStage.LEAD_FORM) }
+    
+    // Lead Form inputs
+    var fullName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var preferredContact by remember { mutableStateOf("Email") }
+    var messageText by remember { mutableStateOf("I'm interested in the ${car.brand} ${car.model}. Please priority route my dynamic referral under partner code AFF_12345.") }
+    
+    // Validation
+    var fullNameError by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
+    var phoneError by remember { mutableStateOf(false) }
+
     var secsLeft by remember { mutableStateOf(3) }
     
-    LaunchedEffect(Unit) {
-        while (secsLeft > 0) {
-            delay(800)
-            secsLeft--
+    LaunchedEffect(currentStage) {
+        if (currentStage == RedirectFlowStage.COUNTER) {
+            while (secsLeft > 0) {
+                delay(800)
+                secsLeft--
+            }
+            onComplete()
         }
-        onComplete()
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = {
+        if (currentStage == RedirectFlowStage.LEAD_FORM) {
+            onDismiss()
+        }
+    }) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+            border = BorderStroke(1.dp, ImmersiveBorderHighlight),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(vertical = 16.dp)
                 .testTag("redirect_flow_dialog")
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 4.dp,
-                    modifier = Modifier.size(54.dp)
-                )
-                Spacer(modifier = Modifier.height(18.dp))
-                
-                Text(
-                    text = "GENERATING AFFILIATE ROUTE",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp
-                    )
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = car.fullName,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = ChromeWhite,
-                    textAlign = TextAlign.Center
-                )
-                
-                Spacer(modifier = Modifier.height(14.dp))
-                Text(
-                    text = "Embedding Affiliate Tracker Token (ref: AFF_12345). Securely logging referral payload to campaign database. Redirecting in $secsLeft seconds...",
-                    color = SilverSatin,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-                
-                Spacer(modifier = Modifier.height(18.dp))
-                LinearProgressIndicator(
-                    progress = { (3 - secsLeft) / 3f },
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = DeepObsidian,
+            if (currentStage == RedirectFlowStage.LEAD_FORM) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                )
+                        .padding(20.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Title and subtitle
+                    Column {
+                        Text(
+                            text = "PRIORITY PARTNER INQUIRY",
+                            color = LuxuryGold,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Secure Lead Routing",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Light
+                            ),
+                            color = ChromeWhite
+                        )
+                    }
+
+                    // Mini Vehicle details card
+                    Surface(
+                        color = Color(0x06FFFFFF),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, ImmersiveBorder),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = car.imageUrl,
+                                contentDescription = car.fullName,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = car.fullName,
+                                    color = ChromeWhite,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "MSRP ${car.price}",
+                                    color = LuxuryGold,
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+                        }
+                    }
+
+                    // Form Inputs
+                    // 1. Name Input
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedTextField(
+                            value = fullName,
+                            onValueChange = { 
+                                fullName = it 
+                                fullNameError = false
+                            },
+                            label = { Text("Full Name", color = SilverSatin) },
+                            placeholder = { Text("e.g. John Doe", color = Color.Gray) },
+                            modifier = Modifier.fillMaxWidth().testTag("lead_field_name"),
+                            singleLine = true,
+                            isError = fullNameError,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = ChromeWhite,
+                                unfocusedTextColor = ChromeWhite,
+                                focusedLabelColor = LuxuryGold,
+                                unfocusedLabelColor = SilverSatin,
+                                focusedBorderColor = LuxuryGold,
+                                unfocusedBorderColor = ImmersiveBorderHighlight,
+                                errorBorderColor = RedCalipers,
+                                cursorColor = LuxuryGold
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        if (fullNameError) {
+                            Text("Full Name is required", color = RedCalipers, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    // 2. Email Input
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { 
+                                email = it 
+                                emailError = false
+                            },
+                            label = { Text("Email Address", color = SilverSatin) },
+                            placeholder = { Text("e.g. john@example.com", color = Color.Gray) },
+                            modifier = Modifier.fillMaxWidth().testTag("lead_field_email"),
+                            singleLine = true,
+                            isError = emailError,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = ChromeWhite,
+                                unfocusedTextColor = ChromeWhite,
+                                focusedLabelColor = LuxuryGold,
+                                unfocusedLabelColor = SilverSatin,
+                                focusedBorderColor = LuxuryGold,
+                                unfocusedBorderColor = ImmersiveBorderHighlight,
+                                errorBorderColor = RedCalipers,
+                                cursorColor = LuxuryGold
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        if (emailError) {
+                            Text("Valid email address is required", color = RedCalipers, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    // 3. Phone Input
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedTextField(
+                            value = phone,
+                            onValueChange = { 
+                                phone = it 
+                                phoneError = false
+                            },
+                            label = { Text("Phone Number", color = SilverSatin) },
+                            placeholder = { Text("e.g. +1 (555) 019-2834", color = Color.Gray) },
+                            modifier = Modifier.fillMaxWidth().testTag("lead_field_phone"),
+                            singleLine = true,
+                            isError = phoneError,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = ChromeWhite,
+                                unfocusedTextColor = ChromeWhite,
+                                focusedLabelColor = LuxuryGold,
+                                unfocusedLabelColor = SilverSatin,
+                                focusedBorderColor = LuxuryGold,
+                                unfocusedBorderColor = ImmersiveBorderHighlight,
+                                errorBorderColor = RedCalipers,
+                                cursorColor = LuxuryGold
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        if (phoneError) {
+                            Text("Valid phone number is required (min 7 chars)", color = RedCalipers, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    // 4. Preferred Contact Method Option Chips
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "Preferred Contact Method",
+                            color = SilverSatin,
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf("Email", "Phone", "SMS").forEach { method ->
+                                val isSelected = preferredContact == method
+                                Surface(
+                                    onClick = { preferredContact = method },
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isSelected) LuxuryGold.copy(alpha = 0.15f) else Color(0x06FFFFFF),
+                                    border = BorderStroke(
+                                        width = 1.dp,
+                                        color = if (isSelected) LuxuryGold else ImmersiveBorder
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = method,
+                                            color = if (isSelected) LuxuryGold else SilverSatin,
+                                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 5. Message Text
+                    OutlinedTextField(
+                        value = messageText,
+                        onValueChange = { messageText = it },
+                        label = { Text("Inquiry Message (Optional)", color = SilverSatin) },
+                        modifier = Modifier.fillMaxWidth().height(100.dp).testTag("lead_field_message"),
+                        maxLines = 4,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = ChromeWhite,
+                            unfocusedTextColor = ChromeWhite,
+                            focusedLabelColor = LuxuryGold,
+                            unfocusedLabelColor = SilverSatin,
+                            focusedBorderColor = LuxuryGold,
+                            unfocusedBorderColor = ImmersiveBorderHighlight,
+                            cursorColor = LuxuryGold
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Buttons Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Cancel Button
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            border = BorderStroke(1.dp, ImmersiveBorderHighlight),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = SilverSatin
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
+                        ) {
+                            Text("Cancel", fontWeight = FontWeight.Bold)
+                        }
+
+                        // Submit Button
+                        Button(
+                            onClick = {
+                                val isNameValid = fullName.isNotBlank()
+                                val isEmailValid = email.isNotBlank() && email.contains("@") && email.contains(".")
+                                val isPhoneValid = phone.isNotBlank() && phone.length >= 7
+                                
+                                if (!isNameValid) fullNameError = true
+                                if (!isEmailValid) emailError = true
+                                if (!isPhoneValid) phoneError = true
+                                
+                                if (isNameValid && isEmailValid && isPhoneValid) {
+                                    currentStage = RedirectFlowStage.COUNTER
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .weight(1.5f)
+                                .height(50.dp)
+                                .testTag("lead_submit_button")
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Launch,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Color.Black
+                                )
+                                Text("Inquire Now", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Countdown Stage
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        color = LuxuryGold,
+                        strokeWidth = 4.dp,
+                        modifier = Modifier.size(54.dp)
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                    
+                    Text(
+                        text = "LEAD REGISTERED & SECURED",
+                        color = LuxuryGold,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = car.fullName,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = ChromeWhite,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Lead captured for $fullName. Securely transmitting partner referral payload under priority tracker (Ref: AFF_12345). Redirecting in $secsLeft seconds...",
+                        color = SilverSatin,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(18.dp))
+                    LinearProgressIndicator(
+                        progress = { (3 - secsLeft) / 3f },
+                        color = LuxuryGold,
+                        trackColor = DeepObsidian,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                    )
+                }
             }
         }
     }
